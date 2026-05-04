@@ -4,20 +4,19 @@ const path    = require('path');
 
 const app = express();
 
-// ── Credentials ──────────────────────────────────────────────
 const CLIENT_ID     = 'setmedicsla@gmail.com-api-client';
 const CLIENT_SECRET = 'AzlQEHm0mDIX2ztXERX5s8Hb1t5QHjG8';
 const TOKEN_URL     = 'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token';
 const OPENSKY_BASE  = 'https://opensky-network.org/api';
 
-// ── Token cache ───────────────────────────────────────────────
 let cachedToken = null;
 let tokenExpiry  = 0;
 
 async function getToken() {
   if (cachedToken && Date.now() < tokenExpiry - 60000) return cachedToken;
-
   console.log('Fetching new OpenSky token...');
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 15000);
   const resp = await fetch(TOKEN_URL, {
     method:  'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -26,65 +25,59 @@ async function getToken() {
       client_id:     CLIENT_ID,
       client_secret: CLIENT_SECRET,
     }),
+    signal: controller.signal,
   });
-
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`Token error ${resp.status}: ${text}`);
-  }
-
+  clearTimeout(tid);
+  if (!resp.ok) { const text = await resp.text(); throw new Error(`Token error ${resp.status}: ${text}`); }
   const data  = await resp.json();
   cachedToken = data.access_token;
   tokenExpiry = Date.now() + (data.expires_in || 1800) * 1000;
-  console.log('Token obtained, expires in', data.expires_in, 'seconds');
+  console.log('Token OK, expires in', data.expires_in, 's');
   return cachedToken;
 }
 
-// ── Serve static files (the front-end) ───────────────────────
+async function openSkyGet(path) {
+  const token = await getToken();
+  const url   = `${OPENSKY_BASE}${path}`;
+  console.log('GET', url);
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 55000);
+  const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal });
+  clearTimeout(tid);
+  if (resp.status === 401) {
+    cachedToken = null;
+    const t2 = await getToken();
+    const c2 = new AbortController();
+    const t2id = setTimeout(() => c2.abort(), 55000);
+    const r2 = await fetch(url, { headers: { Authorization: `Bearer ${t2}` }, signal: c2.signal });
+    clearTimeout(t2id);
+    if (!r2.ok) throw new Error(`OpenSky error ${r2.status}`);
+    return r2.json();
+  }
+  if (!resp.ok) throw new Error(`OpenSky error ${resp.status}`);
+  return resp.json();
+}
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── API proxy route ───────────────────────────────────────────
 app.get('/api/opensky', async (req, res) => {
+  req.socket.setTimeout(90000);
+  res.setTimeout(90000);
   try {
     const reqPath = req.query.path || '/states/all';
-
-    // Safety: only allow read paths
     if (!reqPath.startsWith('/states') && !reqPath.startsWith('/flights') && !reqPath.startsWith('/tracks')) {
       return res.status(400).json({ error: 'Invalid path' });
     }
-
-    const token   = await getToken();
-    const url     = `${OPENSKY_BASE}${reqPath}`;
-    console.log('Fetching:', url);
-
-    const apiResp = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!apiResp.ok) {
-      // If token expired mid-session, clear it and retry once
-      if (apiResp.status === 401) {
-        cachedToken = null;
-        const newToken = await getToken();
-        const retry = await fetch(url, {
-          headers: { Authorization: `Bearer ${newToken}` },
-        });
-        if (!retry.ok) return res.status(retry.status).json({ error: `OpenSky error ${retry.status}` });
-        const data = await retry.json();
-        return res.json(data);
-      }
-      return res.status(apiResp.status).json({ error: `OpenSky error ${apiResp.status}` });
-    }
-
-    const data = await apiResp.json();
+    const data = await openSkyGet(reqPath);
     res.json(data);
-
   } catch (err) {
     console.error('API error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ── Start ─────────────────────────────────────────────────────
+app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`SkyWatch running on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`SkyWatch running on port ${PORT}`));
+server.timeout = 90000;
