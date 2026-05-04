@@ -401,7 +401,7 @@ function renderManualPanel(callsign){
 function manualPhase(phase){
   // Use map center as location approximation
   const mapFrame = document.getElementById('fr24-frame');
-  const apt = nearestAirport(39.5, -98.35);
+  const apt = nearestAirport(45.5898, -122.5951);
   renderATCPanel(phase, trackedPhase!==null, apt);
   trackedPhase = phase;
   // Highlight selected phase button
