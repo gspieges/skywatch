@@ -259,18 +259,22 @@ function liveATCUrl(icao,type){
 
 // ── PARSE ADS-B ONE AIRCRAFT ─────────────────────────────────
 function parseAC(a){
+  // AirLabs format: lat/lng/alt/dir/speed/v_speed/flight_icao/hex/reg_number/aircraft_icao
   return{
     icao24: a.hex||'',
-    callsign:(a.flight||a.callsign||'').trim(),
-    reg: a.r||'',
-    type: a.t||'',
+    callsign:(a.flight_icao||a.flight_iata||'').trim(),
+    reg: a.reg_number||'',
+    type: a.aircraft_icao||'',
     latitude: a.lat,
-    longitude: a.lon,
-    altitude: typeof a.alt_baro==='number'?a.alt_baro:(typeof a.alt_geom==='number'?a.alt_geom:0),
-    velocity: a.gs||0,
-    true_track: a.track||0,
-    vertical_rate: a.baro_rate||a.geom_rate||0,
-    on_ground: a.alt_baro==='ground',
+    longitude: a.lng,
+    altitude: (a.alt||0)*3.28084,
+    velocity: a.speed||0,
+    true_track: a.dir||0,
+    vertical_rate: (a.v_speed||0)*196.85,
+    on_ground: a.status==='landed',
+    dep: a.dep_icao||'',
+    arr: a.arr_icao||'',
+    status: a.status||'',
   };
 }
 
@@ -415,6 +419,7 @@ function makePopup(f){
     <div class="popup-callsign">${cs}</div>
     <div class="popup-row"><span>Reg</span><span>${f.reg||'—'}</span></div>
     <div class="popup-row"><span>Type</span><span>${f.type||'—'}</span></div>
+    <div class="popup-row"><span>Route</span><span>${f.dep&&f.arr?f.dep+'→'+f.arr:'—'}</span></div>
     <div class="popup-row"><span>Altitude</span><span>${f.altitude>0?Math.round(f.altitude).toLocaleString()+' ft':'—'}</span></div>
     <div class="popup-row"><span>Speed</span><span>${Math.round(f.velocity||0)} kts</span></div>
     <div class="popup-row"><span>Heading</span><span>${Math.round(f.true_track||0)}°</span></div>
