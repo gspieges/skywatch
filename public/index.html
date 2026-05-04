@@ -399,17 +399,27 @@ function renderManualPanel(callsign){
 }
 
 function manualPhase(phase){
-  const apt = nearestAirport(39.5,-98.35);
+  // Use map center as location approximation
+  const mapFrame = document.getElementById('fr24-frame');
+  const apt = nearestAirport(39.5, -98.35);
   renderATCPanel(phase, trackedPhase!==null, apt);
   trackedPhase = phase;
   // Highlight selected phase button
   document.querySelectorAll('#flight-info button').forEach(b=>{
+    b.style.background='var(--bg)';
+    b.style.borderColor='var(--border)';
+    b.style.color='var(--text)';
     if(b.textContent===phase.toUpperCase()){
       b.style.background='var(--accent-light)';
       b.style.borderColor='var(--accent)';
       b.style.color='var(--accent)';
     }
   });
+  // Switch to ATC tab automatically
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab').classList.add('active');
+  document.getElementById('tab-atc').classList.add('active');
 }
 
 // ── RENDER ATC PANEL ─────────────────────────────────────────
@@ -428,11 +438,9 @@ function renderATCPanel(phase, switched, airport){
   section.innerHTML = bannerHtml + freqs.map(f=>{
     const streamUrl = liveATCStream(airport.icao, f.type);
     const searchUrl = `https://www.liveatc.net/search/?icao=${airport.icao}`;
-    const artcc = (typeof ARTCC !== 'undefined' && f.type==='CENTER') ? (ARTCC[airport.icao]||'ZSE') : null;
+    const artcc = ARTCC[airport.icao] || 'ZSE';
     const locationLabel = f.type==='CENTER' ? `${artcc} En Route Center` : `${airport.name} ${f.type}`;
-    const listenBtn = streamUrl
-      ? `<a class="atc-listen-btn" href="${streamUrl}" target="_blank">🎧 Listen — ${locationLabel}</a>`
-      : '';
+    const listenBtn = `<a class="atc-listen-btn" href="${streamUrl||searchUrl}" target="_blank">🎧 Listen — ${locationLabel}</a>`;
     return`<div class="freq-card ${f.r?'recommended':''}">
       <div class="freq-top">
         <span class="freq-type">${f.type}</span>
