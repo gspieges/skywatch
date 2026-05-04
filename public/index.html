@@ -10,10 +10,10 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
-    --bg:#f5f3ef; --surface:#fff; --border:#e2ddd6; --text:#1a1814;
-    --muted:#8a857c; --accent:#2563eb; --accent-light:#eff4ff;
-    --green:#16a34a; --amber:#d97706; --red:#dc2626;
-    --mono:'DM Mono',monospace; --serif:'Instrument Serif',serif;
+    --bg:#f5f3ef;--surface:#fff;--border:#e2ddd6;--text:#1a1814;
+    --muted:#8a857c;--accent:#2563eb;--accent-light:#eff4ff;
+    --green:#16a34a;--amber:#d97706;--red:#dc2626;
+    --mono:'DM Mono',monospace;--serif:'Instrument Serif',serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:var(--mono);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
@@ -30,7 +30,7 @@
   .btn:hover{background:#1d4ed8}
   .btn.secondary{background:transparent;color:var(--accent)}
   .btn.secondary:hover{background:var(--accent-light)}
-  .search-hint{font-size:10px;color:var(--muted);white-space:nowrap}
+  .search-hint{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .main{display:grid;grid-template-columns:1fr 320px;flex:1;overflow:hidden}
   #map{width:100%;height:100%;background:#eeeae4}
   .leaflet-container{font-family:var(--mono)!important}
@@ -68,35 +68,23 @@
   .phase-step.done{background:var(--green)}
   .phase-names{display:flex;justify-content:space-between;margin-top:4px}
   .phase-name{font-size:8px;color:var(--muted);text-align:center;flex:1}
-
-  /* ATC PANEL */
   .freq-list{padding:10px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
   .freq-card{border:1px solid var(--border);border-radius:4px;padding:10px 12px;transition:all .2s;position:relative;overflow:hidden}
-  .freq-card:hover{border-color:var(--accent);background:var(--accent-light)}
   .freq-card.recommended{border-color:var(--green);background:#f0fdf4}
   .freq-card.recommended::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green)}
   .freq-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
   .freq-type{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
-  .freq-badge{font-size:8px;padding:2px 6px;border-radius:10px;letter-spacing:.06em;font-weight:500}
-  .freq-badge.rec{background:#dcfce7;color:var(--green)}
+  .freq-badge{font-size:8px;padding:2px 6px;border-radius:10px;letter-spacing:.06em;font-weight:500;background:#dcfce7;color:var(--green)}
   .freq-hz{font-size:18px;font-weight:300;letter-spacing:.04em;margin-bottom:2px}
   .freq-hz span{font-size:11px;color:var(--muted)}
   .freq-name{font-size:10px;color:var(--muted);margin-bottom:8px}
-
-  /* ATC AUDIO PLAYER */
-  .atc-player{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-top:6px}
-  .atc-player-label{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-  .atc-player audio{width:100%;height:28px}
-  .atc-listen-btn{width:100%;padding:6px;background:var(--green);color:#fff;border:none;border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;cursor:pointer;font-weight:500;transition:background .15s}
-  .atc-listen-btn:hover{background:#15803d}
-  .atc-listen-btn.loading{background:var(--amber)}
-  .atc-external{display:block;text-align:center;padding:5px;margin-top:4px;border:1px solid var(--border);border-radius:3px;font-size:9px;color:var(--accent);text-decoration:none;font-weight:500}
-  .atc-external:hover{background:var(--accent);color:#fff}
-
+  .atc-btn{width:100%;padding:8px;background:var(--green);color:#fff;border:none;border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;cursor:pointer;font-weight:500;transition:background .15s;text-decoration:none;display:block;text-align:center}
+  .atc-btn:hover{background:#15803d}
+  .atc-btn.secondary-link{background:transparent;color:var(--accent);border:1px solid var(--border);margin-top:4px}
+  .atc-btn.secondary-link:hover{background:var(--accent);color:#fff}
   .auto-switch-banner{margin:0 10px 6px;padding:8px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:4px;font-size:10px;color:var(--amber);display:flex;align-items:center;gap:6px}
   .auto-switch-banner.switched{background:#f0fdf4;border-color:#86efac;color:var(--green);animation:flash .6s ease}
   @keyframes flash{0%{background:#dcfce7}100%{background:#f0fdf4}}
-
   .flights-panel{flex:1;overflow-y:auto}
   .flights-table{width:100%;border-collapse:collapse}
   .flights-table th{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:6px 14px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);font-weight:500;position:sticky;top:0}
@@ -124,25 +112,22 @@
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">Sky<span>Watch</span></div>
   <div style="display:flex;align-items:center;gap:20px">
     <div id="live-clock">--:--:-- UTC</div>
     <div class="header-meta">
       <div id="aircraft-count">— aircraft tracked</div>
-      <div>OpenSky Network · LiveATC.net</div>
+      <div>ADS-B One · LiveATC.net</div>
     </div>
   </div>
 </header>
-
 <div class="search-bar">
   <input type="text" id="search-input" placeholder="Search callsign e.g. UAL123, AAL456, DAL789..." maxlength="10">
   <button class="btn" onclick="searchFlight()">TRACK</button>
   <button class="btn secondary" onclick="loadAreaFlights()">LOAD AREA</button>
   <span class="search-hint" id="search-status">Enter a callsign to begin</span>
 </div>
-
 <div class="main">
   <div id="map"></div>
   <div class="sidebar">
@@ -182,149 +167,130 @@
     </div>
   </div>
 </div>
-
 <div class="notification" id="notification"></div>
 
 <script>
-// ─────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────
 let map, markers={}, trackedCallsign=null;
 let allFlights=[], refreshInterval=null, lastPhase=null;
 let flightPath=null, pathPoints=[];
 
-// ─────────────────────────────────────────────
-// API — calls our own server (no CORS, no auth issues)
-// ─────────────────────────────────────────────
-async function openSkyFetch(path) {
-  const resp = await fetch(`/api/opensky?path=${encodeURIComponent(path)}`, {
-    signal: AbortSignal.timeout(25000)
-  });
-  if (!resp.ok) {
-    const err = await resp.json().catch(()=>({}));
-    throw new Error(err.error || `Server error ${resp.status}`);
-  }
+// ── API calls to our own server ──────────────────────────────
+async function apiFetch(params) {
+  const qs = new URLSearchParams(params).toString();
+  const resp = await fetch(`/api/flights?${qs}`, { signal: AbortSignal.timeout(45000) });
+  if (!resp.ok) { const e=await resp.json().catch(()=>({})); throw new Error(e.error||`Error ${resp.status}`); }
   return resp.json();
 }
 
-// ─────────────────────────────────────────────
-// MAP
-// ─────────────────────────────────────────────
+// ── MAP ──────────────────────────────────────────────────────
 map = L.map('map',{zoomControl:true,attributionControl:false}).setView([39.5,-98.35],5);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(map);
-L.control.attribution({prefix:'CartoDB · OpenSky Network'}).addTo(map);
+L.control.attribution({prefix:'CartoDB · ADS-B One'}).addTo(map);
 
-// ─────────────────────────────────────────────
-// CLOCK
-// ─────────────────────────────────────────────
+// ── CLOCK ────────────────────────────────────────────────────
 function updateClock(){
   const n=new Date(),p=v=>String(v).padStart(2,'0');
   document.getElementById('live-clock').textContent=`${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} UTC`;
 }
 setInterval(updateClock,1000); updateClock();
 
-// ─────────────────────────────────────────────
-// FLIGHT PHASES
-// ─────────────────────────────────────────────
+// ── FLIGHT PHASES ────────────────────────────────────────────
 const PHASES=['Ground','Departure','Climb','Cruise','Descent','Approach','Landing'];
-
-function getPhase(alt,vel,vr){
-  const ft=(alt||0)*3.28084, vs=(vr||0)*196.85;
-  if(ft<500) return 'Ground';
-  if(ft<3000&&vs>200) return 'Departure';
-  if(ft<18000&&vs>100) return 'Climb';
-  if(ft>=18000&&Math.abs(vs)<200) return 'Cruise';
-  if(ft<18000&&vs<-100) return 'Descent';
-  if(ft<5000&&vs<-50) return 'Approach';
+function getPhase(altFt,vs){
+  if(altFt<500) return 'Ground';
+  if(altFt<3000&&vs>200) return 'Departure';
+  if(altFt<18000&&vs>100) return 'Climb';
+  if(altFt>=18000&&Math.abs(vs)<200) return 'Cruise';
+  if(altFt<18000&&vs<-100) return 'Descent';
+  if(altFt<5000&&vs<-50) return 'Approach';
   return 'Cruise';
 }
 
-// ─────────────────────────────────────────────
-// LIVEATC FEED DATA
-// Maps flight phase → LiveATC stream URLs
-// These are real working stream URLs from LiveATC.net
-// ─────────────────────────────────────────────
-const PHASE_FREQS = {
-  Ground:    [{type:'ATIS',hz:'135.725',name:'Airport Information',r:false,stream:'https://www.liveatc.net/play/klax_atis.pls'},{type:'CLEARANCE',hz:'121.700',name:'Clearance Delivery',r:false,stream:'https://www.liveatc.net/play/klax_clnc.pls'},{type:'GROUND',hz:'121.900',name:'Ground Control',r:true,stream:'https://www.liveatc.net/play/klax_gnd.pls'}],
-  Departure: [{type:'TOWER',hz:'118.300',name:'Tower Control',r:true,stream:'https://www.liveatc.net/play/klax_twr.pls'},{type:'DEPARTURE',hz:'125.350',name:'Departure Control',r:false,stream:'https://www.liveatc.net/play/klax_dep.pls'}],
-  Climb:     [{type:'TRACON',hz:'124.150',name:'TRACON Approach',r:true,stream:'https://www.liveatc.net/play/klax_app.pls'},{type:'CENTER',hz:'132.825',name:'En Route Center',r:false,stream:'https://www.liveatc.net/play/zla.pls'}],
-  Cruise:    [{type:'CENTER',hz:'132.825',name:'En Route Center',r:true,stream:'https://www.liveatc.net/play/zla.pls'},{type:'GUARD',hz:'121.500',name:'Emergency Guard',r:false,stream:null}],
-  Descent:   [{type:'APPROACH',hz:'119.100',name:'Approach Control',r:true,stream:'https://www.liveatc.net/play/klax_app.pls'},{type:'CENTER',hz:'134.250',name:'En Route Center',r:false,stream:'https://www.liveatc.net/play/zla.pls'}],
-  Approach:  [{type:'APPROACH',hz:'119.100',name:'Approach Control',r:true,stream:'https://www.liveatc.net/play/klax_app.pls'},{type:'TOWER',hz:'118.300',name:'Tower Control',r:false,stream:'https://www.liveatc.net/play/klax_twr.pls'}],
-  Landing:   [{type:'TOWER',hz:'118.300',name:'Tower Control',r:true,stream:'https://www.liveatc.net/play/klax_twr.pls'},{type:'GROUND',hz:'121.900',name:'Ground Control',r:false,stream:'https://www.liveatc.net/play/klax_gnd.pls'}],
-};
-
-// Get nearest airport ICAO from lat/lon (simplified lookup for major US hubs)
-function getNearestAirport(lat, lon) {
-  const airports = [
-    {icao:'KLAX',name:'Los Angeles',lat:33.9425,lon:-118.4081},
-    {icao:'KSFO',name:'San Francisco',lat:37.6213,lon:-122.379},
-    {icao:'KORD',name:'Chicago O\'Hare',lat:41.9742,lon:-87.9073},
-    {icao:'KATL',name:'Atlanta',lat:33.6407,lon:-84.4277},
-    {icao:'KJFK',name:'New York JFK',lat:40.6413,lon:-73.7781},
-    {icao:'KEWR',name:'Newark',lat:40.6895,lon:-74.1745},
-    {icao:'KDFW',name:'Dallas Fort Worth',lat:32.8998,lon:-97.0403},
-    {icao:'KDEN',name:'Denver',lat:39.8561,lon:-104.6737},
-    {icao:'KSEA',name:'Seattle',lat:47.4502,lon:-122.3088},
-    {icao:'KMIA',name:'Miami',lat:25.7959,lon:-80.287},
-    {icao:'KBOS',name:'Boston',lat:42.3656,lon:-71.0096},
-    {icao:'KLAS',name:'Las Vegas',lat:36.0840,lon:-115.1537},
-    {icao:'KPHX',name:'Phoenix',lat:33.4373,lon:-112.0078},
-    {icao:'KCLT',name:'Charlotte',lat:35.2140,lon:-80.9431},
-    {icao:'KIAH',name:'Houston',lat:29.9902,lon:-95.3368},
-    {icao:'KMSP',name:'Minneapolis',lat:44.8848,lon:-93.2223},
-    {icao:'KDTW',name:'Detroit',lat:42.2162,lon:-83.3554},
-    {icao:'KPHL',name:'Philadelphia',lat:39.8729,lon:-75.2437},
-    {icao:'KPDX',name:'Portland',lat:45.5898,lon:-122.5951},
-    {icao:'KBWI',name:'Baltimore',lat:39.1754,lon:-76.6683},
-  ];
-  let best=airports[0], bestDist=999999;
-  for(const a of airports){
-    const d=Math.hypot(a.lat-lat, a.lon-lon);
-    if(d<bestDist){bestDist=d; best=a;}
-  }
+// ── NEAREST AIRPORT ──────────────────────────────────────────
+const AIRPORTS=[
+  {icao:'KLAX',name:'Los Angeles',lat:33.9425,lon:-118.4081},
+  {icao:'KSFO',name:'San Francisco',lat:37.6213,lon:-122.379},
+  {icao:'KORD',name:'Chicago',lat:41.9742,lon:-87.9073},
+  {icao:'KATL',name:'Atlanta',lat:33.6407,lon:-84.4277},
+  {icao:'KJFK',name:'New York JFK',lat:40.6413,lon:-73.7781},
+  {icao:'KEWR',name:'Newark',lat:40.6895,lon:-74.1745},
+  {icao:'KDFW',name:'Dallas',lat:32.8998,lon:-97.0403},
+  {icao:'KDEN',name:'Denver',lat:39.8561,lon:-104.6737},
+  {icao:'KSEA',name:'Seattle',lat:47.4502,lon:-122.3088},
+  {icao:'KMIA',name:'Miami',lat:25.7959,lon:-80.287},
+  {icao:'KBOS',name:'Boston',lat:42.3656,lon:-71.0096},
+  {icao:'KLAS',name:'Las Vegas',lat:36.0840,lon:-115.1537},
+  {icao:'KPHX',name:'Phoenix',lat:33.4373,lon:-112.0078},
+  {icao:'KCLT',name:'Charlotte',lat:35.2140,lon:-80.9431},
+  {icao:'KIAH',name:'Houston',lat:29.9902,lon:-95.3368},
+  {icao:'KMSP',name:'Minneapolis',lat:44.8848,lon:-93.2223},
+  {icao:'KDTW',name:'Detroit',lat:42.2162,lon:-83.3554},
+  {icao:'KPHL',name:'Philadelphia',lat:39.8729,lon:-75.2437},
+  {icao:'KPDX',name:'Portland',lat:45.5898,lon:-122.5951},
+  {icao:'KBWI',name:'Baltimore',lat:39.1754,lon:-76.6683},
+  {icao:'KSLC',name:'Salt Lake City',lat:40.7884,lon:-111.9778},
+  {icao:'KMCO',name:'Orlando',lat:28.4294,lon:-81.3089},
+  {icao:'KTPA',name:'Tampa',lat:27.9755,lon:-82.5332},
+  {icao:'KSAN',name:'San Diego',lat:32.7336,lon:-117.1897},
+];
+function nearestAirport(lat,lon){
+  let best=AIRPORTS[0],bd=999999;
+  for(const a of AIRPORTS){const d=Math.hypot(a.lat-lat,a.lon-lon);if(d<bd){bd=d;best=a;}}
   return best;
 }
 
-// Build LiveATC stream URL for a given airport and feed type
-function getLiveATCStream(icao, feedType) {
-  const type = feedType.toLowerCase();
-  const streams = {
-    ground:    `https://www.liveatc.net/play/${icao.toLowerCase()}_gnd.pls`,
-    tower:     `https://www.liveatc.net/play/${icao.toLowerCase()}_twr.pls`,
-    approach:  `https://www.liveatc.net/play/${icao.toLowerCase()}_app.pls`,
-    departure: `https://www.liveatc.net/play/${icao.toLowerCase()}_dep.pls`,
-    tracon:    `https://www.liveatc.net/play/${icao.toLowerCase()}_app.pls`,
-    atis:      `https://www.liveatc.net/play/${icao.toLowerCase()}_atis.pls`,
-    center:    `https://www.liveatc.net/play/${icao.toLowerCase()}_ctr.pls`,
-    clearance: `https://www.liveatc.net/play/${icao.toLowerCase()}_clnc.pls`,
+// ── ATC FREQUENCIES BY PHASE ─────────────────────────────────
+const PHASE_FREQS={
+  Ground:   [{type:'ATIS',hz:'135.725',name:'Airport Information',r:false},{type:'CLEARANCE',hz:'121.700',name:'Clearance Delivery',r:false},{type:'GROUND',hz:'121.900',name:'Ground Control',r:true}],
+  Departure:[{type:'TOWER',hz:'118.300',name:'Tower Control',r:true},{type:'DEPARTURE',hz:'125.350',name:'Departure Control',r:false}],
+  Climb:    [{type:'TRACON',hz:'124.150',name:'TRACON Approach',r:true},{type:'CENTER',hz:'132.825',name:'En Route Center',r:false}],
+  Cruise:   [{type:'CENTER',hz:'132.825',name:'En Route Center',r:true},{type:'GUARD',hz:'121.500',name:'Emergency Guard',r:false}],
+  Descent:  [{type:'APPROACH',hz:'119.100',name:'Approach Control',r:true},{type:'CENTER',hz:'134.250',name:'En Route Center',r:false}],
+  Approach: [{type:'APPROACH',hz:'119.100',name:'Approach Control',r:true},{type:'TOWER',hz:'118.300',name:'Tower Control',r:false}],
+  Landing:  [{type:'TOWER',hz:'118.300',name:'Tower Control',r:true},{type:'GROUND',hz:'121.900',name:'Ground Control',r:false}],
+};
+
+function liveATCUrl(icao,type){
+  const t=type.toLowerCase();
+  const map_={'ground':'gnd','tower':'twr','approach':'app','departure':'dep','tracon':'app','atis':'atis','center':'ctr','clearance':'clnc','guard':null};
+  const code=map_[t];
+  return code ? `https://www.liveatc.net/play/${icao.toLowerCase()}_${code}.pls` : null;
+}
+
+// ── PARSE ADS-B ONE AIRCRAFT ─────────────────────────────────
+function parseAC(a){
+  return{
+    icao24: a.hex||'',
+    callsign:(a.flight||a.callsign||'').trim(),
+    reg: a.r||'',
+    type: a.t||'',
+    latitude: a.lat,
+    longitude: a.lon,
+    altitude: typeof a.alt_baro==='number'?a.alt_baro:(typeof a.alt_geom==='number'?a.alt_geom:0),
+    velocity: a.gs||0,
+    true_track: a.track||0,
+    vertical_rate: a.baro_rate||a.geom_rate||0,
+    on_ground: a.alt_baro==='ground',
   };
-  return streams[type] || null;
 }
 
-function getLiveATCSearchURL(icao) {
-  return `https://www.liveatc.net/search/?icao=${icao}`;
-}
-
-// ─────────────────────────────────────────────
-// RENDER FLIGHT INFO
-// ─────────────────────────────────────────────
-function renderFlightInfo(f) {
-  const altFt  = Math.round(((f.geo_altitude||f.baro_altitude||0))*3.28084);
-  const spdKts = Math.round((f.velocity||0)*1.94384);
-  const hdg    = Math.round(f.true_track||0);
-  const vs     = Math.round((f.vertical_rate||0)*196.85);
-  const phase  = getPhase(f.geo_altitude||f.baro_altitude, f.velocity, f.vertical_rate);
-  const phaseIdx = PHASES.indexOf(phase);
-  const vsStr  = vs>50?`▲${vs}`:vs<-50?`▼${Math.abs(vs)}`:'—';
-  const steps  = PHASES.map((p,i)=>`<div class="phase-step ${i<phaseIdx?'done':i===phaseIdx?'active':''}"></div>`).join('');
+// ── RENDER FLIGHT INFO ───────────────────────────────────────
+function renderFlightInfo(f){
+  const alt=Math.round(f.altitude||0);
+  const spd=Math.round(f.velocity||0);
+  const hdg=Math.round(f.true_track||0);
+  const vs=Math.round(f.vertical_rate||0);
+  const phase=getPhase(alt,vs);
+  const pi=PHASES.indexOf(phase);
+  const vsStr=vs>50?`▲${vs}`:vs<-50?`▼${Math.abs(vs)}`:'—';
+  const steps=PHASES.map((p,i)=>`<div class="phase-step ${i<pi?'done':i===pi?'active':''}"></div>`).join('');
 
   document.getElementById('flight-info').innerHTML=`
-    <div class="flight-callsign-big">${(f.callsign||'UNKNOWN').trim()}</div>
-    <div class="flight-route">${f.origin_country||'—'} · ${f.icao24||''}</div>
+    <div class="flight-callsign-big">${f.callsign||'UNKNOWN'}</div>
+    <div class="flight-route">${f.reg||f.type||'—'} · ${f.icao24}</div>
     <div class="stats-grid">
-      <div class="stat-box"><div class="stat-label">Altitude</div><div class="stat-value">${altFt>0?altFt.toLocaleString():'—'}<span class="stat-unit">ft</span></div></div>
-      <div class="stat-box"><div class="stat-label">Speed</div><div class="stat-value">${spdKts||'—'}<span class="stat-unit">kts</span></div></div>
+      <div class="stat-box"><div class="stat-label">Altitude</div><div class="stat-value">${alt>0?alt.toLocaleString():'—'}<span class="stat-unit">ft</span></div></div>
+      <div class="stat-box"><div class="stat-label">Speed</div><div class="stat-value">${spd||'—'}<span class="stat-unit">kts</span></div></div>
       <div class="stat-box"><div class="stat-label">Heading</div><div class="stat-value">${hdg}°</div></div>
       <div class="stat-box"><div class="stat-label">Vert Rate</div><div class="stat-value" style="color:${vs>50?'var(--green)':vs<-50?'var(--red)':'var(--text)'}">${vsStr}<span class="stat-unit">fpm</span></div></div>
     </div>
@@ -338,64 +304,52 @@ function renderFlightInfo(f) {
   document.getElementById('track-dot').className='status-dot live';
 
   if(phase!==lastPhase){
-    const airport = (f.latitude&&f.longitude) ? getNearestAirport(f.latitude,f.longitude) : {icao:'KLAX',name:'Los Angeles'};
-    renderFrequencies(phase, lastPhase!==null, airport, f);
+    const airport=f.latitude&&f.longitude?nearestAirport(f.latitude,f.longitude):{icao:'KLAX',name:'Los Angeles'};
+    renderFrequencies(phase,lastPhase!==null,airport);
     lastPhase=phase;
   }
 }
 
-// ─────────────────────────────────────────────
-// RENDER ATC FREQUENCIES + AUDIO
-// ─────────────────────────────────────────────
-function renderFrequencies(phase, switched, airport, flight) {
-  const freqs = PHASE_FREQS[phase] || PHASE_FREQS['Cruise'];
-  const rec   = freqs.find(f=>f.r);
-  const banner= document.getElementById('auto-switch-area');
+// ── RENDER ATC FREQUENCIES ───────────────────────────────────
+function renderFrequencies(phase,switched,airport){
+  const freqs=PHASE_FREQS[phase]||PHASE_FREQS['Cruise'];
+  const rec=freqs.find(f=>f.r);
+  const banner=document.getElementById('auto-switch-area');
 
   if(switched&&rec){
-    banner.innerHTML=`<div class="auto-switch-banner switched" id="sw-b">✓ Auto-switched to ${rec.type} · ${airport.icao}</div>`;
+    banner.innerHTML=`<div class="auto-switch-banner switched" id="sw-b">✓ Auto-switched · ${rec.type} at ${airport.icao}</div>`;
     setTimeout(()=>{const b=document.getElementById('sw-b');if(b)b.classList.remove('switched');},3000);
   } else if(!switched){
-    banner.innerHTML=`<div class="auto-switch-banner">⟳ Auto-frequency · updates as flight phase changes</div>`;
+    banner.innerHTML=`<div class="auto-switch-banner">⟳ Auto-frequency · updates as phase changes</div>`;
   }
 
-  document.getElementById('freq-list').innerHTML = freqs.map(f=>{
-    const streamUrl = getLiveATCStream(airport.icao, f.type);
-    const searchUrl = getLiveATCSearchURL(airport.icao);
-
-    const audioHtml = streamUrl ? `
-      <div class="atc-player">
-        <div class="atc-player-label">🎧 Live ATC Audio — ${airport.name} ${f.type}</div>
-        <audio controls preload="none" style="width:100%;height:28px">
-          <source src="${streamUrl}" type="audio/mpeg">
-        </audio>
-        <a class="atc-external" href="${searchUrl}" target="_blank">Browse all ${airport.icao} feeds on LiveATC.net ↗</a>
-      </div>` : `
-      <a class="atc-external" href="${searchUrl}" target="_blank">🎧 Find ${airport.icao} ${f.type} on LiveATC.net ↗</a>`;
-
-    return `
-    <div class="freq-card ${f.r?'recommended':''}">
+  document.getElementById('freq-list').innerHTML=freqs.map(f=>{
+    const streamUrl=liveATCUrl(airport.icao,f.type);
+    const searchUrl=`https://www.liveatc.net/search/?icao=${airport.icao}`;
+    const audioSection=streamUrl
+      ?`<a class="atc-btn" href="${streamUrl}" target="_blank">🎧 Tap to listen — ${airport.name} ${f.type}</a>
+         <a class="atc-btn secondary-link" href="${searchUrl}" target="_blank">Browse all ${airport.icao} feeds ↗</a>`
+      :`<a class="atc-btn secondary-link" href="${searchUrl}" target="_blank">🔍 Find ${airport.icao} feeds on LiveATC ↗</a>`;
+    return`<div class="freq-card ${f.r?'recommended':''}">
       <div class="freq-top">
         <span class="freq-type">${f.type}</span>
-        ${f.r?`<span class="freq-badge rec">▶ NOW ACTIVE</span>`:''}
+        ${f.r?`<span class="freq-badge">▶ NOW ACTIVE</span>`:''}
       </div>
       <div class="freq-hz">${f.hz}<span> MHz</span></div>
       <div class="freq-name">${f.name} · ${airport.name}</div>
-      ${audioHtml}
+      ${audioSection}
     </div>`;
   }).join('');
 }
 
-// ─────────────────────────────────────────────
-// LOAD FLIGHTS
-// ─────────────────────────────────────────────
+// ── LOAD AREA FLIGHTS ────────────────────────────────────────
 async function loadAreaFlights(){
   setStatus(`<span class="spinner"></span>Loading flights...`);
-  const b=map.getBounds();
-  const path=`/states/all?lamin=${b.getSouth().toFixed(2)}&lomin=${b.getWest().toFixed(2)}&lamax=${b.getNorth().toFixed(2)}&lomax=${b.getEast().toFixed(2)}`;
+  const c=map.getCenter();
   try{
-    const data=await openSkyFetch(path);
-    allFlights=(data.states||[]).map(parseFlight).filter(f=>f.latitude&&f.longitude);
+    const data=await apiFetch({lat:c.lat.toFixed(4),lon:c.lng.toFixed(4),radius:150});
+    const ac=(data.ac||data.aircraft||[]).map(parseAC).filter(f=>f.latitude&&f.longitude);
+    allFlights=ac;
     document.getElementById('aircraft-count').textContent=`${allFlights.length} aircraft in view`;
     setStatus(`${allFlights.length} aircraft loaded`);
     renderAllMarkers(); renderNearbyFlights();
@@ -404,28 +358,27 @@ async function loadAreaFlights(){
   }
 }
 
+// ── SEARCH / TRACK ───────────────────────────────────────────
 async function searchFlight(){
   const input=document.getElementById('search-input').value.trim();
-  if(!input){notify('Enter a callsign to search');return;}
+  if(!input){notify('Enter a callsign');return;}
   stopTracking();
   trackedCallsign=input.toUpperCase();
   lastPhase=null; pathPoints=[];
   if(flightPath){map.removeLayer(flightPath);flightPath=null;}
 
-  setStatus(`<span class="spinner"></span>Searching for ${trackedCallsign}...`);
+  setStatus(`<span class="spinner"></span>Searching ${trackedCallsign}...`);
   try{
-    const data=await openSkyFetch('/states/all');
-    const states=data.states||[];
-    document.getElementById('aircraft-count').textContent=`${states.length.toLocaleString()} aircraft tracked`;
-    const match=states.find(s=>s[1]&&s[1].trim().toUpperCase()===trackedCallsign);
-    if(!match){
+    const data=await apiFetch({callsign:trackedCallsign});
+    const ac=(data.ac||data.aircraft||[]).map(parseAC).filter(f=>f.latitude&&f.longitude);
+    if(!ac.length){
       setStatus(`Not found: ${trackedCallsign}`);
       notify(`${trackedCallsign} not found — may be on ground or out of range`);
       trackedCallsign=null; return;
     }
-    allFlights=states.slice(0,400).map(parseFlight).filter(f=>f.latitude&&f.longitude);
+    const flight=ac[0];
+    allFlights=ac;
     renderNearbyFlights(); renderAllMarkers();
-    const flight=parseFlight(match);
     setStatus(`Tracking ${trackedCallsign}`);
     renderFlightInfo(flight);
     if(flight.latitude&&flight.longitude) map.flyTo([flight.latitude,flight.longitude],8,{duration:1.5});
@@ -433,9 +386,9 @@ async function searchFlight(){
 
     refreshInterval=setInterval(async()=>{
       try{
-        const d2=await openSkyFetch('/states/all');
-        const m2=(d2.states||[]).find(s=>s[1]&&s[1].trim().toUpperCase()===trackedCallsign);
-        if(m2){const u=parseFlight(m2);renderFlightInfo(u);addPathPoint(u);updateTrackedMarker(u);}
+        const d2=await apiFetch({callsign:trackedCallsign});
+        const a2=(d2.ac||d2.aircraft||[]).map(parseAC).filter(f=>f.latitude&&f.longitude);
+        if(a2.length){const u=a2[0];renderFlightInfo(u);addPathPoint(u);updateTrackedMarker(u);}
       }catch{}
     },20000);
 
@@ -444,22 +397,7 @@ async function searchFlight(){
   }
 }
 
-async function refreshTracked(){
-  if(!trackedCallsign) return;
-  try{
-    const data=await openSkyFetch('/states/all');
-    const match=(data.states||[]).find(s=>s[1]&&s[1].trim().toUpperCase()===trackedCallsign);
-    if(match){const f=parseFlight(match);renderFlightInfo(f);addPathPoint(f);updateTrackedMarker(f);}
-  }catch{}
-}
-
-function parseFlight(s){
-  return{icao24:s[0],callsign:(s[1]||'').trim(),origin_country:s[2],longitude:s[5],latitude:s[6],baro_altitude:s[7],on_ground:s[8],velocity:s[9],true_track:s[10],vertical_rate:s[11],geo_altitude:s[13]};
-}
-
-// ─────────────────────────────────────────────
-// MARKERS
-// ─────────────────────────────────────────────
+// ── MARKERS ──────────────────────────────────────────────────
 function renderAllMarkers(){
   Object.values(markers).forEach(m=>map.removeLayer(m)); markers={};
   allFlights.forEach(f=>{
@@ -472,15 +410,14 @@ function renderAllMarkers(){
 }
 
 function makePopup(f){
-  const altFt=Math.round(((f.geo_altitude||f.baro_altitude||0))*3.28084);
-  const spdKts=Math.round((f.velocity||0)*1.94384);
   const cs=(f.callsign||f.icao24||'UNKNOWN').trim();
   return`<div class="popup-content">
     <div class="popup-callsign">${cs}</div>
-    <div class="popup-row"><span>Country</span><span>${f.origin_country||'—'}</span></div>
-    <div class="popup-row"><span>Altitude</span><span>${altFt>0?altFt.toLocaleString()+' ft':'—'}</span></div>
-    <div class="popup-row"><span>Speed</span><span>${spdKts||'—'} kts</span></div>
-    <div class="popup-row"><span>Heading</span><span>${f.true_track?Math.round(f.true_track)+'°':'—'}</span></div>
+    <div class="popup-row"><span>Reg</span><span>${f.reg||'—'}</span></div>
+    <div class="popup-row"><span>Type</span><span>${f.type||'—'}</span></div>
+    <div class="popup-row"><span>Altitude</span><span>${f.altitude>0?Math.round(f.altitude).toLocaleString()+' ft':'—'}</span></div>
+    <div class="popup-row"><span>Speed</span><span>${Math.round(f.velocity||0)} kts</span></div>
+    <div class="popup-row"><span>Heading</span><span>${Math.round(f.true_track||0)}°</span></div>
     <button class="popup-track-btn" onclick="trackFromMap('${cs}')">TRACK THIS FLIGHT</button>
   </div>`;
 }
@@ -513,29 +450,24 @@ function stopTracking(){
   setStatus('Enter a callsign to begin');
 }
 
-// ─────────────────────────────────────────────
-// NEARBY TABLE
-// ─────────────────────────────────────────────
+// ── NEARBY TABLE ─────────────────────────────────────────────
 function renderNearbyFlights(){
   const tbody=document.getElementById('nearby-tbody');
   if(!allFlights.length){tbody.innerHTML=`<tr class="loading-row"><td colspan="4">No flights loaded</td></tr>`;return;}
-  const sorted=[...allFlights].sort((a,b)=>(b.geo_altitude||0)-(a.geo_altitude||0)).slice(0,60);
+  const sorted=[...allFlights].sort((a,b)=>(b.altitude||0)-(a.altitude||0)).slice(0,60);
   tbody.innerHTML=sorted.map(f=>{
     const cs=(f.callsign||f.icao24||'—').trim();
-    const altFt=Math.round(((f.geo_altitude||f.baro_altitude||0))*3.28084);
-    const alt=altFt>0?(altFt/1000).toFixed(1)+'k':'—';
+    const alt=f.altitude>0?(f.altitude/1000).toFixed(1)+'k':'—';
     return`<tr class="${cs===trackedCallsign?'tracked':''}" onclick="trackFromMap('${cs}')">
       <td class="callsign-cell">${cs}</td>
       <td class="alt-cell">${alt}</td>
-      <td class="spd-cell">${Math.round((f.velocity||0)*1.94384)||'—'}</td>
+      <td class="spd-cell">${Math.round(f.velocity||0)||'—'}</td>
       <td class="spd-cell">${Math.round(f.true_track||0)}°</td>
     </tr>`;
   }).join('');
 }
 
-// ─────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────
 function switchTab(name,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
