@@ -399,10 +399,10 @@ function renderManualPanel(callsign){
 }
 
 function manualPhase(phase){
-  // Use map center as location approximation
-  const mapFrame = document.getElementById('fr24-frame');
+  currentAltFt = phase==='Ground'?0:phase==='Departure'?2000:phase==='Climb'?10000:phase==='Cruise'?35000:phase==='Descent'?15000:phase==='Approach'?3000:500;
   const apt = nearestAirport(45.5898, -122.5951);
   renderATCPanel(phase, trackedPhase!==null, apt);
+  switchTab('atc', document.querySelector('.tab'));
   trackedPhase = phase;
   // Highlight selected phase button
   document.querySelectorAll('#flight-info button').forEach(b=>{
