@@ -256,7 +256,7 @@ const PHASE_FREQS={
   Ground:   [{type:'ATIS',hz:'135.725',name:'Airport Information',r:false},{type:'CLEARANCE',hz:'121.700',name:'Clearance Delivery',r:false},{type:'GROUND',hz:'121.900',name:'Ground Control',r:true}],
   Departure:[{type:'TOWER',hz:'118.300',name:'Tower Control',r:true},{type:'DEPARTURE',hz:'125.350',name:'Departure Control',r:false}],
   Climb:    [{type:'TRACON',hz:'124.150',name:'TRACON Approach',r:true},{type:'CENTER',hz:'132.825',name:'En Route Center',r:false}],
-  Cruise:   [{type:'CENTER',hz:'132.825',name:'En Route Center',r:true}],
+  Cruise:   [{type:'CENTER',hz:'132.825',name:'En Route Center',r:true},{type:'GUARD',hz:'121.500',name:'Emergency Guard',r:false}],
   Descent:  [{type:'APPROACH',hz:'119.100',name:'Approach Control',r:true},{type:'CENTER',hz:'134.250',name:'En Route Center',r:false}],
   Approach: [{type:'APPROACH',hz:'119.100',name:'Approach Control',r:true},{type:'TOWER',hz:'118.300',name:'Tower Control',r:false}],
   Landing:  [{type:'TOWER',hz:'118.300',name:'Tower Control',r:true},{type:'GROUND',hz:'121.900',name:'Ground Control',r:false}],
@@ -276,7 +276,7 @@ function liveATCStream(icao, type){
   // For Center/En Route — use the correct ARTCC facility
   if(t === 'center'){
     const artcc = ARTCC[icao.toUpperCase()] || 'ZSE';
-    const band=(currentAltFt>=24000)?'high':'low';const streams={ZSE:{high:'https://www.liveatc.net/play/zse_46.pls',low:'https://www.liveatc.net/play/zse_5.pls'},ZOA:{high:'https://www.liveatc.net/play/zoa_high.pls',low:'https://www.liveatc.net/play/zoa_low.pls'},ZLA:{high:'https://www.liveatc.net/play/zla_high.pls',low:'https://www.liveatc.net/play/zla_low.pls'},ZAB:{high:'https://www.liveatc.net/play/zab_high.pls',low:'https://www.liveatc.net/play/zab_low.pls'},ZDV:{high:'https://www.liveatc.net/play/zdv_high.pls',low:'https://www.liveatc.net/play/zdv_low.pls'},ZLC:{high:'https://www.liveatc.net/play/zlc_high.pls',low:'https://www.liveatc.net/play/zlc_low.pls'},ZAU:{high:'https://www.liveatc.net/play/zau_high.pls',low:'https://www.liveatc.net/play/zau_low.pls'},ZMP:{high:'https://www.liveatc.net/play/zmp_high.pls',low:'https://www.liveatc.net/play/zmp_low.pls'},ZTL:{high:'https://www.liveatc.net/play/ztl_high.pls',low:'https://www.liveatc.net/play/ztl_low.pls'},ZNY:{high:'https://www.liveatc.net/play/zny_high.pls',low:'https://www.liveatc.net/play/zny_low.pls'},ZBW:{high:'https://www.liveatc.net/play/zbw_high.pls',low:'https://www.liveatc.net/play/zbw_low.pls'},ZDC:{high:'https://www.liveatc.net/play/zdc_high.pls',low:'https://www.liveatc.net/play/zdc_low.pls'},ZHU:{high:'https://www.liveatc.net/play/zhu_high.pls',low:'https://www.liveatc.net/play/zhu_low.pls'},ZFW:{high:'https://www.liveatc.net/play/zfw_high.pls',low:'https://www.liveatc.net/play/zfw_low.pls'},ZMA:{high:'https://www.liveatc.net/play/zma_high.pls',low:'https://www.liveatc.net/play/zma_low.pls'},ZME:{high:'https://www.liveatc.net/play/zme_high.pls',low:'https://www.liveatc.net/play/zme_low.pls'}};const s=streams[artcc];return s?s[band]:`https://www.liveatc.net/search/?icao=${artcc}`;
+    return `https://www.liveatc.net/search/?icao=${artcc}`;
   }
   // For TRACON/Approach — some airports use combined app/dep feeds
   if(t === 'tracon' || t === 'approach'){
@@ -399,10 +399,10 @@ function renderManualPanel(callsign){
 }
 
 function manualPhase(phase){
-  currentAltFt = phase==='Ground'?0:phase==='Departure'?2000:phase==='Climb'?10000:phase==='Cruise'?35000:phase==='Descent'?15000:phase==='Approach'?3000:500;
+  // Use map center as location approximation
+  const mapFrame = document.getElementById('fr24-frame');
   const apt = nearestAirport(45.5898, -122.5951);
   renderATCPanel(phase, trackedPhase!==null, apt);
-  switchTab('atc', document.querySelector('.tab'));
   trackedPhase = phase;
   // Highlight selected phase button
   document.querySelectorAll('#flight-info button').forEach(b=>{
@@ -436,12 +436,12 @@ function renderATCPanel(phase, switched, airport){
   }
 
   section.innerHTML = bannerHtml + freqs.map(f=>{
-    const streamUrl = liveATCStream(airport.icao, f.type, currentAltFt);
+    const streamUrl = liveATCStream(airport.icao, f.type);
     const searchUrl = `https://www.liveatc.net/search/?icao=${airport.icao}`;
     const artcc = ARTCC[airport.icao] || 'ZSE';
-    const band = currentAltFt >= 24000 ? 'High' : 'Low';
-    const locationLabel = f.type==='CENTER' ? `${artcc} En Route Center — ${band} Altitude` : `${airport.name} ${f.type}`;
-    const listenBtn = streamUrl ? `<a class="atc-listen-btn" href="${streamUrl}" target="_blank">🎧 Listen — ${locationLabel}</a>` : `<a class="atc-listen-btn" href="${searchUrl}" target="_blank">🔍 Find on LiveATC — ${locationLabel}</a>`;    return`<div class="freq-card ${f.r?'recommended':''}">
+    const locationLabel = f.type==='CENTER' ? `${artcc} En Route Center` : `${airport.name} ${f.type}`;
+    const listenBtn = `<a class="atc-listen-btn" href="${streamUrl||searchUrl}" target="_blank">🎧 Listen — ${locationLabel}</a>`;
+    return`<div class="freq-card ${f.r?'recommended':''}">
       <div class="freq-top">
         <span class="freq-type">${f.type}</span>
         ${f.r?`<span class="freq-badge">▶ NOW ACTIVE</span>`:''}
