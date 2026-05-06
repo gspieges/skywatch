@@ -87,10 +87,7 @@
   .player-label::before{content:'🎧'}
   audio{width:100%;height:28px;display:block}
   .player-hint{font-size:8px;color:var(--muted);margin-top:3px}
-  .gbtn{display:block;width:100%;padding:8px;background:var(--green);color:#fff;border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:500;text-align:center;text-decoration:none;margin-bottom:4px;letter-spacing:.03em}
-  .gbtn{display:block;width:100%;padding:8px;background:var(--green);color:#fff;border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:500;text-align:center;text-decoration:none;margin-bottom:4px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .gbtn:hover{background:#15803d}
-.gbtn:hover{background:#15803d}.browse-btn{display:block;width:100%;padding:5px 8px;background:transparent;color:var(--accent);border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:9px;letter-spacing:.04em;cursor:pointer;font-weight:500;text-align:center;text-decoration:none;transition:all .15s}
+  .browse-btn{display:block;width:100%;padding:5px 8px;background:transparent;color:var(--accent);border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:9px;letter-spacing:.04em;cursor:pointer;font-weight:500;text-align:center;text-decoration:none;transition:all .15s}
   .browse-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:9px 16px;border-radius:4px;font-size:11px;transition:transform .3s ease;z-index:9999;white-space:nowrap}
   .toast.show{transform:translateX(-50%) translateY(0)}
@@ -211,23 +208,24 @@ const ARTCC={
   KATL:'ZTL',KJFK:'ZNY',KBOS:'ZBW',KBWI:'ZDC',
   KIAH:'ZHU',KDFW:'ZFW',KMIA:'ZMA',KMCO:'ZMA',KSAN:'ZLA',
 };
+// Direct LiveATC listen page URLs — open straight to audio player, no searching needed
 const CENTERS={
-  ZSE:{name:'Seattle Center',  hi:'https://www.liveatc.net/play/zse_46.pls', lo:'https://www.liveatc.net/play/zse_5.pls'},
-  ZOA:{name:'Oakland Center',  hi:'https://www.liveatc.net/play/zoa_high.pls',lo:'https://www.liveatc.net/play/zoa_low.pls'},
-  ZLA:{name:'LA Center',       hi:'https://www.liveatc.net/play/zla_high.pls',lo:'https://www.liveatc.net/play/zla_low.pls'},
-  ZAB:{name:'Albuquerque Ctr', hi:'https://www.liveatc.net/play/zab_high.pls',lo:'https://www.liveatc.net/play/zab_low.pls'},
-  ZDV:{name:'Denver Center',   hi:'https://www.liveatc.net/play/zdv_high.pls',lo:'https://www.liveatc.net/play/zdv_low.pls'},
-  ZLC:{name:'Salt Lake Ctr',   hi:'https://www.liveatc.net/play/zlc_high.pls',lo:'https://www.liveatc.net/play/zlc_low.pls'},
-  ZAU:{name:'Chicago Center',  hi:'https://www.liveatc.net/play/zau_high.pls',lo:'https://www.liveatc.net/play/zau_low.pls'},
-  ZMP:{name:'Minneapolis Ctr', hi:'https://www.liveatc.net/play/zmp_high.pls',lo:'https://www.liveatc.net/play/zmp_low.pls'},
-  ZTL:{name:'Atlanta Center',  hi:'https://www.liveatc.net/play/ztl_high.pls',lo:'https://www.liveatc.net/play/ztl_low.pls'},
-  ZNY:{name:'New York Center', hi:'https://www.liveatc.net/play/zny_high.pls',lo:'https://www.liveatc.net/play/zny_low.pls'},
-  ZBW:{name:'Boston Center',   hi:'https://www.liveatc.net/play/zbw_high.pls',lo:'https://www.liveatc.net/play/zbw_low.pls'},
-  ZDC:{name:'Washington Ctr',  hi:'https://www.liveatc.net/play/zdc_high.pls',lo:'https://www.liveatc.net/play/zdc_low.pls'},
-  ZHU:{name:'Houston Center',  hi:'https://www.liveatc.net/play/zhu_high.pls',lo:'https://www.liveatc.net/play/zhu_low.pls'},
-  ZFW:{name:'Ft Worth Center', hi:'https://www.liveatc.net/play/zfw_high.pls',lo:'https://www.liveatc.net/play/zfw_low.pls'},
-  ZMA:{name:'Miami Center',    hi:'https://www.liveatc.net/play/zma_high.pls',lo:'https://www.liveatc.net/play/zma_low.pls'},
-  ZME:{name:'Memphis Center',  hi:'https://www.liveatc.net/play/zme_high.pls',lo:'https://www.liveatc.net/play/zme_low.pls'},
+  ZSE:{name:'Seattle Center',  hi:'https://www.liveatc.net/hlisten.php?mount=krdm2_zse46', lo:'https://www.liveatc.net/hlisten.php?mount=kbdn2_zse'},
+  ZOA:{name:'Oakland Center',  hi:'https://www.liveatc.net/hlisten.php?icao=ksfo&mount=zoa_sfo', lo:'https://www.liveatc.net/hlisten.php?icao=ksfo&mount=zoa_sfo'},
+  ZLA:{name:'LA Center',       hi:'https://www.liveatc.net/search/?icao=ZLA', lo:'https://www.liveatc.net/search/?icao=ZLA'},
+  ZAB:{name:'Albuquerque Ctr', hi:'https://www.liveatc.net/search/?icao=ZAB', lo:'https://www.liveatc.net/search/?icao=ZAB'},
+  ZDV:{name:'Denver Center',   hi:'https://www.liveatc.net/search/?icao=ZDV', lo:'https://www.liveatc.net/search/?icao=ZDV'},
+  ZLC:{name:'Salt Lake Ctr',   hi:'https://www.liveatc.net/hlisten.php?mount=zlc_slc', lo:'https://www.liveatc.net/hlisten.php?mount=zlc_slc'},
+  ZAU:{name:'Chicago Center',  hi:'https://www.liveatc.net/search/?icao=ZAU', lo:'https://www.liveatc.net/search/?icao=ZAU'},
+  ZMP:{name:'Minneapolis Ctr', hi:'https://www.liveatc.net/search/?icao=ZMP', lo:'https://www.liveatc.net/search/?icao=ZMP'},
+  ZTL:{name:'Atlanta Center',  hi:'https://www.liveatc.net/search/?icao=ZTL', lo:'https://www.liveatc.net/search/?icao=ZTL'},
+  ZNY:{name:'New York Center', hi:'https://www.liveatc.net/hlisten.php?mount=zbw_ron3', lo:'https://www.liveatc.net/hlisten.php?mount=zbw_ron3'},
+  ZBW:{name:'Boston Center',   hi:'https://www.liveatc.net/search/?icao=ZBW', lo:'https://www.liveatc.net/search/?icao=ZBW'},
+  ZDC:{name:'Washington Ctr',  hi:'https://www.liveatc.net/search/?icao=ZDC', lo:'https://www.liveatc.net/search/?icao=ZDC'},
+  ZHU:{name:'Houston Center',  hi:'https://www.liveatc.net/search/?icao=ZHU', lo:'https://www.liveatc.net/search/?icao=ZHU'},
+  ZFW:{name:'Ft Worth Center', hi:'https://www.liveatc.net/search/?icao=ZFW', lo:'https://www.liveatc.net/search/?icao=ZFW'},
+  ZMA:{name:'Miami Center',    hi:'https://www.liveatc.net/search/?icao=ZMA', lo:'https://www.liveatc.net/search/?icao=ZMA'},
+  ZME:{name:'Memphis Center',  hi:'https://www.liveatc.net/search/?icao=ZME', lo:'https://www.liveatc.net/search/?icao=ZME'},
 };
 
 // === FREQUENCIES BY PHASE ===
@@ -291,7 +289,7 @@ function renderATC(phase, apt, alt, switched){
       </div>
       <div class="fhz">${f.hz}<small> MHz</small></div>
       <div class="fdesc">${f.d} · ${f.t.toLowerCase()==='center'?(()=>{const z=ARTCC[apt.icao];const c=CENTERS[z];return c?`${z} ${c.name}`:apt.name;})():apt.name}</div>
-      <a class="gbtn" href="${getStreamURL(apt,f.t,alt)}" target="_blank">🎧 Listen — ${label}</a>
+      <div class="player-box">
         <div class="player-label">${label}</div>
         <audio controls preload="none">
           <source src="${streamURL}" type="audio/mpeg">
