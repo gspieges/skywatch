@@ -88,6 +88,8 @@
   audio{width:100%;height:28px;display:block}
   .player-hint{font-size:8px;color:var(--muted);margin-top:3px}
   .gbtn{display:block;width:100%;padding:8px;background:var(--green);color:#fff;border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:500;text-align:center;text-decoration:none;margin-bottom:4px;letter-spacing:.03em}
+  .gbtn{display:block;width:100%;padding:8px;background:var(--green);color:#fff;border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:500;text-align:center;text-decoration:none;margin-bottom:4px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gbtn:hover{background:#15803d}
 .gbtn:hover{background:#15803d}.browse-btn{display:block;width:100%;padding:5px 8px;background:transparent;color:var(--accent);border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:9px;letter-spacing:.04em;cursor:pointer;font-weight:500;text-align:center;text-decoration:none;transition:all .15s}
   .browse-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:9px 16px;border-radius:4px;font-size:11px;transition:transform .3s ease;z-index:9999;white-space:nowrap}
@@ -289,13 +291,7 @@ function renderATC(phase, apt, alt, switched){
       </div>
       <div class="fhz">${f.hz}<small> MHz</small></div>
       <div class="fdesc">${f.d} · ${f.t.toLowerCase()==='center'?(()=>{const z=ARTCC[apt.icao];const c=CENTERS[z];return c?`${z} ${c.name}`:apt.name;})():apt.name}</div>
-      <div class="player-box">
-        <div class="player-label">${label}</div>
-        <audio controls preload="none">
-          <source src="${streamURL}" type="audio/mpeg">
-        </audio>
-        <div class="player-hint">Press ▶ to stream live ATC audio inline</div>
-      </div>
+      <a class="gbtn" href="${getStreamURL(apt,f.t,alt)}" target="_blank">🎧 Listen — ${label}</a>
         <div class="player-label">${label}</div>
         <audio controls preload="none">
           <source src="${streamURL}" type="audio/mpeg">
