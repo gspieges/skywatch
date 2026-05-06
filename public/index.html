@@ -441,8 +441,7 @@ function renderATCPanel(phase, switched, airport){
     const artcc = ARTCC[airport.icao] || 'ZSE';
     const band = currentAltFt >= 24000 ? 'High' : 'Low';
     const locationLabel = f.type==='CENTER' ? `${artcc} En Route Center — ${band} Altitude` : `${airport.name} ${f.type}`;
-    const listenBtn = `<div class="inline-player"><div class="player-label">🎧 ${locationLabel}</div><audio controls preload="none" style="width:100%;height:32px;margin:4px 0"><source src="${streamUrl?`/api/stream?url=${encodeURIComponent(streamUrl)}`:searchUrl}" type="audio/mpeg"></audio></div>`;
-    return`<div class="freq-card ${f.r?'recommended':''}">
+    const listenBtn = streamUrl ? `<a class="atc-listen-btn" href="${streamUrl}" target="_blank">🎧 Listen — ${locationLabel}</a>` : `<a class="atc-listen-btn" href="${searchUrl}" target="_blank">🔍 Find on LiveATC — ${locationLabel}</a>`;    return`<div class="freq-card ${f.r?'recommended':''}">
       <div class="freq-top">
         <span class="freq-type">${f.type}</span>
         ${f.r?`<span class="freq-badge">▶ NOW ACTIVE</span>`:''}
