@@ -1,1 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKYWATCH — Flight & ATC Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f3ef;--surface:#fff;--border:#e2ddd6;--text:#1a1814;
+    --muted:#8a857c;--accent:#2563eb;--accent-light:#eff4ff;
+    --green:#16a34a;--amber:#d97706;--red:#dc2626;
+    --mono:'DM Mono',monospace;--serif:'Instrument Serif',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--mono);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+  .logo{font-family:var(--serif);font-size:20px;letter-spacing:.04em;font-style:italic}
+  .logo span{color:var(--accent);font-style:normal}
+  .hright{font-size:10px;color:var(--muted);text-align:right;line-height:1.6}
+  #clock{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--text)}
+  .sbar{display:flex;gap:8px;padding:8px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;align-items:center}
+  .sbar input{flex:1;padding:7px 12px;border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-size:12px;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s;text-transform:uppercase;letter-spacing:.05em}
+  .sbar input:focus{border-color:var(--accent)}
+  .sbar input::placeholder{text-transform:none;color:var(--muted)}
+  .btn{padding:7px 14px;border:1px solid var(--accent);border-radius:4px;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;cursor:pointer;transition:all .15s;white-space:nowrap}
+  .btn:hover{background:#1d4ed8}
+  .btn.sec{background:transparent;color:var(--accent)}
+  .btn.sec:hover{background:var(--accent-light)}
+  #status{font-size:10px;color:var(--muted);white-space:nowrap}
+  .main{display:grid;grid-template-columns:1fr 360px;flex:1;overflow:hidden}
+  .mapwrap{position:relative;width:100%;height:100%}
+  .mapwrap iframe{width:100%;height:100%;border:none;display:block}
+  .maptip{position:absolute;bottom:10px;left:10px;background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:10px;color:var(--muted);pointer-events:none}
+  .sidebar{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+  .ph{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0}
+  .ptitle{font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+  .dot.live{background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .fpanel{padding:12px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-y:auto;max-height:280px}
+  .noflight{text-align:center;padding:16px 10px;color:var(--muted);font-size:11px;line-height:1.8}
+  .noflight .ic{font-size:24px;margin-bottom:6px;opacity:.4}
+  .csbig{font-family:var(--serif);font-size:24px;font-style:italic;margin-bottom:2px}
+  .fsub{font-size:10px;color:var(--muted);margin-bottom:10px}
+  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+  .sbox{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 8px}
+  .slbl{font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+  .sval{font-size:13px;font-weight:500}
+  .sunit{font-size:8px;color:var(--muted);margin-left:2px}
+  .pwrap{margin-bottom:10px}
+  .ptop{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+  .ptop span:last-child{color:var(--text);font-weight:500}
+  .pbar{display:flex;gap:3px}
+  .pseg{flex:1;height:3px;background:var(--border);border-radius:2px;transition:background .4s}
+  .pseg.done{background:var(--green)}
+  .pseg.active{background:var(--accent)}
+  .pnames{display:flex;margin-top:3px}
+  .pname{font-size:7px;color:var(--muted);text-align:center;flex:1}
+  .stopbtn{width:100%;padding:6px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:9px;letter-spacing:.06em;cursor:pointer}
+  .stopbtn:hover{border-color:var(--red);color:var(--red)}
+  .pselbtn{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+  .pbtn{padding:6px 10px;border:1px solid var(--border);border-radius:3px;background:var(--bg);font-family:var(--mono);font-size:10px;letter-spacing:.05em;cursor:pointer;text-align:left;transition:all .15s;color:var(--text)}
+  .pbtn:hover,.pbtn.sel{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:500}
+  .tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+  .tab{flex:1;padding:7px 6px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;text-align:center;transition:all .15s}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tpane{display:none;flex:1;flex-direction:column;overflow-y:auto}
+  .tpane.active{display:flex}
+  .atcwrap{padding:10px;display:flex;flex-direction:column;gap:8px}
+  .atcempty{text-align:center;padding:20px;color:var(--muted);font-size:11px;line-height:1.8}
+  .banner{padding:7px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:4px;font-size:10px;color:var(--amber)}
+  .banner.grn{background:#f0fdf4;border-color:#86efac;color:var(--green)}
+  .fcard{border:1px solid var(--border);border-radius:4px;padding:9px 11px;position:relative;overflow:hidden}
+  .fcard.act{border-color:var(--green);background:#f0fdf4}
+  .fcard.act::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green)}
+  .ftop{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+  .ftype{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  .fbadge{font-size:8px;padding:2px 6px;border-radius:10px;background:#dcfce7;color:var(--green);font-weight:500}
+  .fhz{font-size:16px;font-weight:300;letter-spacing:.04em;margin-bottom:1px}
+  .fhz small{font-size:10px;color:var(--muted)}
+  .fdesc{font-size:10px;color:var(--muted);margin-bottom:7px}
+  /* INLINE PLAYER */
+  .player-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-bottom:4px}
+  .player-label{font-size:9px;font-weight:500;color:var(--green);margin-bottom:5px;letter-spacing:.03em;display:flex;align-items:center;gap:5px}
+  .player-label::before{content:'🎧'}
+  audio{width:100%;height:28px;display:block}
+  .player-hint{font-size:8px;color:var(--muted);margin-top:3px}
+  .browse-btn{display:block;width:100%;padding:5px 8px;background:transparent;color:var(--accent);border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:9px;letter-spacing:.04em;cursor:pointer;font-weight:500;text-align:center;text-decoration:none;transition:all .15s}
+  .browse-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:9px 16px;border-radius:4px;font-size:11px;transition:transform .3s ease;z-index:9999;white-space:nowrap}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .spin{display:inline-block;width:9px;height:9px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;margin-right:5px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Sky<span>Watch</span></div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div id="clock">--:--:-- UTC</div>
+    <div class="hright">ADS-B Exchange · LiveATC.net</div>
+  </div>
+</header>
+<div class="sbar">
+  <input type="text" id="csinput" placeholder="Enter callsign e.g. UAL123, SWA456 — press Enter or SET ATC" maxlength="10">
+  <button class="btn" onclick="setATC()">SET ATC</button>
+  <button class="btn sec" onclick="clearATC()">CLEAR</button>
+  <span id="status">Enter a callsign to begin</span>
+</div>
+<div class="main">
+  <div class="mapwrap">
+    <iframe src="https://globe.adsbexchange.com/?lat=45.5898&lon=-122.5951&zoom=9" allowfullscreen></iframe>
+    <div class="maptip">Click aircraft on map → note callsign → type above → SET ATC</div>
+  </div>
+  <div class="sidebar">
+    <div class="ph">
+      <span class="ptitle">Tracked Flight</span>
+      <div class="dot" id="dot"></div>
+    </div>
+    <div class="fpanel" id="fpanel">
+      <div class="noflight"><div class="ic">✈</div>Click any aircraft<br>type callsign above<br>press <strong>SET ATC</strong></div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" id="t-atc" onclick="showtab('atc')">ATC Audio</div>
+      <div class="tab" id="t-how" onclick="showtab('how')">How To Use</div>
+    </div>
+    <div class="tpane active" id="pane-atc">
+      <div class="atcwrap" id="atcwrap">
+        <div class="atcempty">Enter a callsign above<br>to see live ATC audio.</div>
+      </div>
+    </div>
+    <div class="tpane" id="pane-how">
+      <div style="padding:14px;font-size:11px;line-height:1.9;color:var(--muted);overflow-y:auto">
+        <div style="color:var(--text);font-weight:500;margin-bottom:10px">How to use SkyWatch</div>
+        <div style="margin-bottom:10px"><span style="color:var(--accent);font-weight:500">1. Find a flight</span><br>Click any aircraft on the map. Note its callsign in the popup.</div>
+        <div style="margin-bottom:10px"><span style="color:var(--accent);font-weight:500">2. Enter callsign</span><br>Type it in the box at the top and click SET ATC.</div>
+        <div style="margin-bottom:10px"><span style="color:var(--accent);font-weight:500">3. Auto mode</span><br>When the flight is found, phase detects automatically and ATC updates every 20 seconds.</div>
+        <div style="margin-bottom:10px"><span style="color:var(--accent);font-weight:500">4. Manual mode</span><br>If not found, select the phase yourself. Green listen buttons appear immediately.</div>
+        <div style="margin-bottom:10px"><span style="color:var(--accent);font-weight:500">5. Audio</span><br>Press ▶ on the audio player to stream live ATC directly in the app.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 
+<script>
+// === STATE ===
+let trackedCS=null, trackedPhase=null, altFt=35000, timer=null;
+
+// === CLOCK ===
+setInterval(()=>{
+  const n=new Date(),p=v=>String(v).padStart(2,'0');
+  document.getElementById('clock').textContent=`${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} UTC`;
+},1000);
+
+// === PHASES ===
+const PHASES=['Ground','Departure','Climb','Cruise','Descent','Approach','Landing'];
+const ALT_FOR_PHASE={Ground:0,Departure:2000,Climb:12000,Cruise:36000,Descent:15000,Approach:3000,Landing:500};
+
+function detectPhase(alt,vs){
+  if(alt<500) return 'Ground';
+  if(alt<3000&&vs>200) return 'Departure';
+  if(alt<18000&&vs>100) return 'Climb';
+  if(alt>=18000&&Math.abs(vs)<200) return 'Cruise';
+  if(alt<18000&&vs<-100) return 'Descent';
+  if(alt<5000&&vs<-50) return 'Approach';
+  return 'Cruise';
+}
+
+// === AIRPORTS ===
+const APTS=[
+  {icao:'KPDX',name:'Portland',lat:45.5898,lon:-122.5951},
+  {icao:'KSEA',name:'Seattle',lat:47.4502,lon:-122.3088},
+  {icao:'KLAX',name:'Los Angeles',lat:33.9425,lon:-118.408},
+  {icao:'KSFO',name:'San Francisco',lat:37.6213,lon:-122.379},
+  {icao:'KORD',name:'Chicago',lat:41.9742,lon:-87.907},
+  {icao:'KATL',name:'Atlanta',lat:33.6407,lon:-84.428},
+  {icao:'KJFK',name:'New York JFK',lat:40.6413,lon:-73.778},
+  {icao:'KDFW',name:'Dallas',lat:32.8998,lon:-97.040},
+  {icao:'KDEN',name:'Denver',lat:39.8561,lon:-104.674},
+  {icao:'KMIA',name:'Miami',lat:25.7959,lon:-80.287},
+  {icao:'KBOS',name:'Boston',lat:42.3656,lon:-71.010},
+  {icao:'KLAS',name:'Las Vegas',lat:36.084,lon:-115.154},
+  {icao:'KPHX',name:'Phoenix',lat:33.4373,lon:-112.008},
+  {icao:'KIAH',name:'Houston',lat:29.9902,lon:-95.337},
+  {icao:'KMSP',name:'Minneapolis',lat:44.8848,lon:-93.222},
+  {icao:'KSLC',name:'Salt Lake City',lat:40.7884,lon:-111.978},
+  {icao:'KMCO',name:'Orlando',lat:28.4294,lon:-81.309},
+  {icao:'KSAN',name:'San Diego',lat:32.7336,lon:-117.190},
+  {icao:'KBWI',name:'Baltimore',lat:39.1754,lon:-76.668},
+  {icao:'KDTW',name:'Detroit',lat:42.2162,lon:-83.355},
+];
+function nearestApt(lat,lon){
+  let b=APTS[0],bd=9999;
+  for(const a of APTS){const d=Math.hypot(a.lat-lat,a.lon-lon);if(d<bd){bd=d;b=a;}}
+  return b;
+}
+
+// === ARTCC CENTER MAPPING ===
+const ARTCC={
+  KPDX:'ZSE',KSEA:'ZSE',KSFO:'ZOA',KLAX:'ZLA',KLAS:'ZLA',KPHX:'ZAB',
+  KDEN:'ZDV',KSLC:'ZLC',KORD:'ZAU',KDTW:'ZAU',KMSP:'ZMP',
+  KATL:'ZTL',KJFK:'ZNY',KBOS:'ZBW',KBWI:'ZDC',
+  KIAH:'ZHU',KDFW:'ZFW',KMIA:'ZMA',KMCO:'ZMA',KSAN:'ZLA',
+};
+const CENTERS={
+  ZSE:{name:'Seattle Center',  hi:'https://www.liveatc.net/play/zse_46.pls', lo:'https://www.liveatc.net/play/zse_5.pls'},
+  ZOA:{name:'Oakland Center',  hi:'https://www.liveatc.net/play/zoa_high.pls',lo:'https://www.liveatc.net/play/zoa_low.pls'},
+  ZLA:{name:'LA Center',       hi:'https://www.liveatc.net/play/zla_high.pls',lo:'https://www.liveatc.net/play/zla_low.pls'},
+  ZAB:{name:'Albuquerque Ctr', hi:'https://www.liveatc.net/play/zab_high.pls',lo:'https://www.liveatc.net/play/zab_low.pls'},
+  ZDV:{name:'Denver Center',   hi:'https://www.liveatc.net/play/zdv_high.pls',lo:'https://www.liveatc.net/play/zdv_low.pls'},
+  ZLC:{name:'Salt Lake Ctr',   hi:'https://www.liveatc.net/play/zlc_high.pls',lo:'https://www.liveatc.net/play/zlc_low.pls'},
+  ZAU:{name:'Chicago Center',  hi:'https://www.liveatc.net/play/zau_high.pls',lo:'https://www.liveatc.net/play/zau_low.pls'},
+  ZMP:{name:'Minneapolis Ctr', hi:'https://www.liveatc.net/play/zmp_high.pls',lo:'https://www.liveatc.net/play/zmp_low.pls'},
+  ZTL:{name:'Atlanta Center',  hi:'https://www.liveatc.net/play/ztl_high.pls',lo:'https://www.liveatc.net/play/ztl_low.pls'},
+  ZNY:{name:'New York Center', hi:'https://www.liveatc.net/play/zny_high.pls',lo:'https://www.liveatc.net/play/zny_low.pls'},
+  ZBW:{name:'Boston Center',   hi:'https://www.liveatc.net/play/zbw_high.pls',lo:'https://www.liveatc.net/play/zbw_low.pls'},
+  ZDC:{name:'Washington Ctr',  hi:'https://www.liveatc.net/play/zdc_high.pls',lo:'https://www.liveatc.net/play/zdc_low.pls'},
+  ZHU:{name:'Houston Center',  hi:'https://www.liveatc.net/play/zhu_high.pls',lo:'https://www.liveatc.net/play/zhu_low.pls'},
+  ZFW:{name:'Ft Worth Center', hi:'https://www.liveatc.net/play/zfw_high.pls',lo:'https://www.liveatc.net/play/zfw_low.pls'},
+  ZMA:{name:'Miami Center',    hi:'https://www.liveatc.net/play/zma_high.pls',lo:'https://www.liveatc.net/play/zma_low.pls'},
+  ZME:{name:'Memphis Center',  hi:'https://www.liveatc.net/play/zme_high.pls',lo:'https://www.liveatc.net/play/zme_low.pls'},
+};
+
+// === FREQUENCIES BY PHASE ===
+const FREQS={
+  Ground:   [{t:'ATIS',hz:'135.725',d:'Airport Information',act:false},{t:'CLEARANCE',hz:'121.700',d:'Clearance Delivery',act:false},{t:'GROUND',hz:'121.900',d:'Ground Control',act:true}],
+  Departure:[{t:'TOWER',hz:'118.300',d:'Tower Control',act:true},{t:'DEPARTURE',hz:'125.350',d:'Departure Control',act:false}],
+  Climb:    [{t:'DEPARTURE',hz:'125.350',d:'Departure Control',act:false},{t:'APPROACH',hz:'124.150',d:'TRACON / Approach',act:true}],
+  Cruise:   [{t:'CENTER',hz:'132.825',d:'En Route Center',act:true}],
+  Descent:  [{t:'APPROACH',hz:'119.100',d:'Approach Control',act:true},{t:'CENTER',hz:'134.250',d:'En Route Center',act:false}],
+  Approach: [{t:'APPROACH',hz:'119.100',d:'Approach Control',act:true},{t:'TOWER',hz:'118.300',d:'Tower Control',act:false}],
+  Landing:  [{t:'TOWER',hz:'118.300',d:'Tower Control',act:true},{t:'GROUND',hz:'121.900',d:'Ground Control',act:false}],
+};
+
+function getStreamURL(apt,type,alt){
+  const t=type.toLowerCase(), ic=apt.icao.toLowerCase();
+  if(t==='center'){
+    const z=ARTCC[apt.icao], c=CENTERS[z];
+    if(!c) return `https://www.liveatc.net/search/?icao=${z||apt.icao}`;
+    return alt>=24000 ? c.hi : c.lo;
+  }
+  if(t==='tower')      return `https://www.liveatc.net/play/${ic}_twr.pls`;
+  if(t==='ground')     return `https://www.liveatc.net/play/${ic}_gnd.pls`;
+  if(t==='approach')   return `https://www.liveatc.net/play/${ic}_app.pls`;
+  if(t==='departure')  return `https://www.liveatc.net/play/${ic}_dep.pls`;
+  if(t==='atis')       return `https://www.liveatc.net/play/${ic}_atis.pls`;
+  if(t==='clearance')  return `https://www.liveatc.net/play/${ic}_clnc.pls`;
+  return `https://www.liveatc.net/search/?icao=${apt.icao}`;
+}
+
+function getLabel(apt,type,alt){
+  const t=type.toLowerCase();
+  if(t==='center'){
+    const z=ARTCC[apt.icao], c=CENTERS[z];
+    const band=alt>=24000?'High Alt':'Low Alt';
+    return c ? `${z} ${c.name} — ${band}` : `En Route Center`;
+  }
+  return `${apt.name} ${type}`;
+}
+
+// === RENDER ATC PANEL ===
+function renderATC(phase, apt, alt, switched){
+  const freqs=FREQS[phase]||FREQS['Cruise'];
+  const active=freqs.find(f=>f.act);
+  let html='';
+
+  if(switched && active){
+    html+=`<div class="banner grn">✓ Auto-switched to ${active.t} · ${apt.icao}</div>`;
+  } else {
+    html+=`<div class="banner">⟳ Auto-frequency · updates as phase changes</div>`;
+  }
+
+  for(const f of freqs){
+    const streamURL = `/api/stream?url=${encodeURIComponent(getStreamURL(apt,f.t,alt))}`;
+    const browseURL = `https://www.liveatc.net/search/?icao=${f.t.toLowerCase()==='center'?(ARTCC[apt.icao]||apt.icao):apt.icao}`;
+    const label = getLabel(apt,f.t,alt);
+
+    html+=`<div class="fcard ${f.act?'act':''}">
+      <div class="ftop">
+        <span class="ftype">${f.t}</span>
+        ${f.act?'<span class="fbadge">▶ NOW ACTIVE</span>':''}
+      </div>
+      <div class="fhz">${f.hz}<small> MHz</small></div>
+      <div class="fdesc">${f.d} · ${f.t.toLowerCase()==='center'?(()=>{const z=ARTCC[apt.icao];const c=CENTERS[z];return c?`${z} ${c.name}`:apt.name;})():apt.name}</div>
+      <div class="player-box">
+        <div class="player-label">${label}</div>
+        <audio controls preload="none">
+          <source src="${streamURL}" type="audio/mpeg">
+        </audio>
+        <div class="player-hint">Press ▶ to stream live ATC audio inline</div>
+      </div>
+      <a class="browse-btn" href="${browseURL}" target="_blank">Browse all feeds on LiveATC.net ↗</a>
+    </div>`;
+  }
+
+  document.getElementById('atcwrap').innerHTML=html;
+  showtab('atc');
+}
+
+// === RENDER FLIGHT PANEL (auto) ===
+function renderFlight(f, phase){
+  const a=Math.round((f.alt||0)*3.28084);
+  const s=Math.round(f.speed||0);
+  const h=Math.round(f.dir||0);
+  const v=Math.round((f.v_speed||0)*196.85);
+  const vs=v>50?`▲${v}`:v<-50?`▼${Math.abs(v)}`:'—';
+  const pi=PHASES.indexOf(phase);
+  const segs=PHASES.map((p,i)=>`<div class="pseg ${i<pi?'done':i===pi?'active':''}"></div>`).join('');
+  const route=f.dep_icao&&f.arr_icao?`${f.dep_icao} → ${f.arr_icao}`:'—';
+  document.getElementById('fpanel').innerHTML=`
+    <div class="csbig">${(f.flight_icao||trackedCS||'').trim()}</div>
+    <div class="fsub">${f.reg_number||'—'} · ${f.aircraft_icao||'—'} · ${route}</div>
+    <div class="sgrid">
+      <div class="sbox"><div class="slbl">Altitude</div><div class="sval">${a>0?a.toLocaleString():'—'}<span class="sunit">ft</span></div></div>
+      <div class="sbox"><div class="slbl">Speed</div><div class="sval">${s||'—'}<span class="sunit">kts</span></div></div>
+      <div class="sbox"><div class="slbl">Heading</div><div class="sval">${h}°</div></div>
+      <div class="sbox"><div class="slbl">Vert Rate</div><div class="sval" style="color:${v>50?'var(--green)':v<-50?'var(--red)':'var(--text)'}">${vs}<span class="sunit">fpm</span></div></div>
+    </div>
+    <div class="pwrap">
+      <div class="ptop"><span>Phase</span><span>${phase.toUpperCase()}</span></div>
+      <div class="pbar">${segs}</div>
+      <div class="pnames">${PHASES.map(p=>`<span class="pname">${p.slice(0,3)}</span>`).join('')}</div>
+    </div>
+    <button class="stopbtn" onclick="clearATC()">STOP TRACKING</button>`;
+  document.getElementById('dot').className='dot live';
+}
+
+// === RENDER MANUAL PANEL ===
+function renderManual(cs){
+  document.getElementById('dot').className='dot live';
+  document.getElementById('fpanel').innerHTML=`
+    <div class="csbig">${cs}</div>
+    <div class="fsub" style="margin-bottom:10px">Select flight phase to load ATC audio</div>
+    <div class="pselbtn">
+      ${PHASES.map(p=>`<button class="pbtn" onclick="pickPhase('${p}',this)">${p.toUpperCase()}</button>`).join('')}
+    </div>
+    <button class="stopbtn" onclick="clearATC()">STOP TRACKING</button>`;
+  document.getElementById('atcwrap').innerHTML=`<div class="atcempty">Select a phase on the left<br>to load ATC audio feeds.</div>`;
+}
+
+function pickPhase(phase, btn){
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  altFt = ALT_FOR_PHASE[phase]||35000;
+  const apt = nearestApt(45.5898,-122.5951);
+  const switched = trackedPhase!==null && trackedPhase!==phase;
+  trackedPhase = phase;
+  renderATC(phase, apt, altFt, switched);
+}
+
+// === FETCH FROM AIRLABS ===
+async function fetchFlight(cs){
+  const r=await fetch(`/api/flights?callsign=${encodeURIComponent(cs)}`,{signal:AbortSignal.timeout(20000)});
+  if(!r.ok) throw new Error(`${r.status}`);
+  const d=await r.json();
+  return (d.ac||[]).length ? d.ac[0] : null;
+}
+
+// === MAIN FLOW ===
+async function setATC(){
+  const cs=document.getElementById('csinput').value.trim().toUpperCase();
+  if(!cs){toast('Enter a callsign');return;}
+  if(timer){clearInterval(timer);timer=null;}
+  trackedCS=cs; trackedPhase=null;
+  setst(`<span class="spin"></span>Loading ${cs}...`);
+  await refresh();
+  timer=setInterval(refresh,20000);
+}
+
+async function refresh(){
+  if(!trackedCS) return;
+  try{
+    const f=await fetchFlight(trackedCS);
+    if(!f){
+      renderManual(trackedCS);
+      setst(`${trackedCS} — select phase manually`);
+      return;
+    }
+    const a=Math.round((f.alt||0)*3.28084);
+    const v=Math.round((f.v_speed||0)*196.85);
+    const phase=detectPhase(a,v);
+    altFt=a;
+    renderFlight(f,phase);
+    const apt=f.lat&&f.lng?nearestApt(f.lat,f.lng):nearestApt(45.5898,-122.5951);
+    if(phase!==trackedPhase){
+      const sw=trackedPhase!==null;
+      trackedPhase=phase;
+      renderATC(phase,apt,a,sw);
+    }
+    setst(`Tracking ${trackedCS}`);
+  }catch(e){
+    renderManual(trackedCS);
+    setst(`${trackedCS} — select phase manually`);
+  }
+}
+
+function clearATC(){
+  if(timer){clearInterval(timer);timer=null;}
+  trackedCS=null;trackedPhase=null;altFt=35000;
+  document.getElementById('csinput').value='';
+  document.getElementById('dot').className='dot';
+  document.getElementById('fpanel').innerHTML=`<div class="noflight"><div class="ic">✈</div>Click any aircraft<br>type callsign above<br>press <strong>SET ATC</strong></div>`;
+  document.getElementById('atcwrap').innerHTML=`<div class="atcempty">Enter a callsign above<br>to see live ATC audio.</div>`;
+  setst('Enter a callsign to begin');
+}
+
+function showtab(name){
+  document.querySelectorAll('.tpane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(`pane-${name}`).classList.add('active');
+  document.getElementById(`t-${name}`).classList.add('active');
+}
+function setst(h){document.getElementById('status').innerHTML=h;}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+document.getElementById('csinput').addEventListener('keydown',e=>{if(e.key==='Enter')setATC();});
+</script>
+</body>
+</html>
