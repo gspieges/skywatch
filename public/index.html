@@ -297,7 +297,7 @@ function renderATC(phase, apt, alt, switched){
           <source src="${streamURL}" type="audio/mpeg">
         </audio>
         <div class="player-hint">Press ▶ to stream live ATC audio inline</div>
-      </div>
+      </div><a class="gbtn" href="${getStreamURL(apt,f.t,alt)}" target="_blank">🎧 Listen — ${label}</a>
       <a class="browse-btn" href="${browseURL}" target="_blank">Browse all feeds on LiveATC.net ↗</a>
     </div>`;
   }
