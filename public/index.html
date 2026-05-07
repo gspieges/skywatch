@@ -198,13 +198,13 @@ var ARTCC={
 };
 
 var FREQS={
-  Ground:   [{t:'ATIS',hz:'135.725',d:'Airport Information',act:false},{t:'CLEARANCE',hz:'121.700',d:'Clearance Delivery',act:false},{t:'GROUND',hz:'121.900',d:'Ground Control',act:true}],
-  Departure:[{t:'TOWER',hz:'118.300',d:'Tower Control',act:true},{t:'DEPARTURE',hz:'125.350',d:'Departure Control',act:false}],
-  Climb:    [{t:'DEPARTURE',hz:'125.350',d:'Departure Control',act:false},{t:'APPROACH',hz:'124.150',d:'TRACON / Approach',act:true}],
-  Cruise:   [{t:'CENTER',hz:'132.825',d:'En Route Center',act:true}],
-  Descent:  [{t:'APPROACH',hz:'119.100',d:'Approach Control',act:true},{t:'CENTER',hz:'134.250',d:'En Route Center',act:false}],
-  Approach: [{t:'APPROACH',hz:'119.100',d:'Approach Control',act:true},{t:'TOWER',hz:'118.300',d:'Tower Control',act:false}],
-  Landing:  [{t:'TOWER',hz:'118.300',d:'Tower Control',act:true},{t:'GROUND',hz:'121.900',d:'Ground Control',act:false}]
+  Ground:   [{t:'ATIS',hz:'120.625',d:'Portland ATIS (128.350 at KSEA)',act:false},{t:'CLEARANCE',hz:'120.125',d:'Clearance Delivery (128.0 at KSEA)',act:false},{t:'GROUND',hz:'121.900',d:'Ground Control (121.7 at KSEA)',act:true}],
+  Departure:[{t:'TOWER',hz:'118.700',d:'Tower — PDX (119.9 or 120.95 at KSEA)',act:true},{t:'DEPARTURE',hz:'124.350',d:'App/Dep North — PDX (119.2 or 120.4 at KSEA)',act:false}],
+  Climb:    [{t:'DEPARTURE',hz:'124.350',d:'App/Dep North — PDX (119.2 or 120.4 at KSEA)',act:false},{t:'APPROACH',hz:'118.100',d:'App/Dep South — PDX (125.6 or 128.5 at KSEA)',act:true}],
+  Cruise:   [{t:'CENTER',hz:'132.825',d:'En Route Center — ZSE',act:true}],
+  Descent:  [{t:'APPROACH',hz:'124.350',d:'App/Dep North — PDX (119.2 or 120.4 at KSEA)',act:true},{t:'APPROACH',hz:'118.100',d:'App/Dep South — PDX (125.6 or 128.5 at KSEA)',act:false}],
+  Approach: [{t:'APPROACH',hz:'124.350',d:'App/Dep North — PDX (119.2 or 120.4 at KSEA)',act:true},{t:'APPROACH',hz:'118.100',d:'App/Dep South — PDX (125.6 or 128.5 at KSEA)',act:false},{t:'TOWER',hz:'118.700',d:'Tower — PDX (119.9 or 120.95 at KSEA)',act:false}],
+  Landing:  [{t:'TOWER',hz:'118.700',d:'Tower — PDX (119.9 or 120.95 at KSEA)',act:true},{t:'GROUND',hz:'121.900',d:'Ground Control (121.7 at KSEA)',act:false}]
 };
 
 function getStreamURL(apt,type,alt){
