@@ -252,14 +252,14 @@ return https://www.liveatc.net/search/?icao=${ic};
 }
 
 function getLabel(apt,type,alt){
-  const t=type.toLowerCase();
-  if(t==='center'){
-    const z=ARTCC[apt.icao], c=CENTERS[z];
-    const band=alt>=24000?'High Alt':'Low Alt';
-    return c ? `${z} ${c.name} — ${band}` : `En Route Center`;
+    const t=type.toLowerCase();
+    if(t==='center'){
+      const z=ARTCC[apt.icao]||'ZSE';
+      const band=alt>=24000?'High Alt':'Low Alt';
+      return `${z} En Route Center — ${band}`;
+    }
+    return `${apt.name} ${type}`;
   }
-  return `${apt.name} ${type}`;
-}
 
 // === RENDER ATC PANEL ===
 function renderATC(phase, apt, alt, switched){
