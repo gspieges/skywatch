@@ -242,19 +242,13 @@ const FREQS={
 };
 
 function getStreamURL(apt,type,alt){
-  const t=type.toLowerCase(), ic=apt.icao.toLowerCase();
-  if(t==='center'){
-    const z=ARTCC[apt.icao], c=CENTERS[z];
-    if(!c) return `https://www.liveatc.net/search/?icao=${z||apt.icao}`;
-    return alt>=24000 ? c.hi : c.lo;
-  }
-  if(t==='tower')      return `https://www.liveatc.net/play/${ic}_twr.pls`;
-  if(t==='ground')     return `https://www.liveatc.net/play/${ic}_gnd.pls`;
-  if(t==='approach')   return `https://www.liveatc.net/play/${ic}_app.pls`;
-  if(t==='departure')  return `https://www.liveatc.net/play/${ic}_dep.pls`;
-  if(t==='atis')       return `https://www.liveatc.net/play/${ic}_atis.pls`;
-  if(t==='clearance')  return `https://www.liveatc.net/play/${ic}_clnc.pls`;
-  return `https://www.liveatc.net/search/?icao=${apt.icao}`;
+const t=type.toLowerCase();
+const ic=apt.icao.toUpperCase();
+if(t==='center'){
+const z=ARTCC[apt.icao]||'ZSE';
+return https://www.liveatc.net/search/?icao=${z};
+}
+return https://www.liveatc.net/search/?icao=${ic};
 }
 
 function getLabel(apt,type,alt){
