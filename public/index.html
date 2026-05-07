@@ -255,7 +255,7 @@ function renderATC(phase,apt,alt,switched){
 }
 
 function renderFlight(f,phase){
-  var a=Math.round((f.alt||0)*3.28084);
+  var a=Math.round(f.alt||0);
   var s=Math.round(f.speed||0);
   var h=Math.round(f.dir||0);
   var v=Math.round((f.v_speed||0)*196.85);
@@ -330,7 +330,7 @@ async function refresh(){
   try{
     var f=await fetchFlight(trackedCS);
     if(!f){renderManual(trackedCS);setst(trackedCS+' - select phase manually');return;}
-    var a=Math.round((f.alt||0)*3.28084);
+    var a=Math.round(f.alt||0);
     var v=Math.round((f.v_speed||0)*196.85);
     var phase=detectPhase(a,v);
     altFt=a;
