@@ -247,8 +247,7 @@ function renderATC(phase,apt,alt,switched){
       '<div class="fdesc">'+f.d+' - '+cname+'</div>'+
       '<a class="gbtn" href="'+url+'" target="_blank">Listen - '+lbl+'</a>'+
       '<a class="browse-btn" href="'+url+'" target="_blank">Browse all feeds on LiveATC.net</a>'+
-'<div style="font-size:9px;color:var(--muted);margin-top:5px;line-height:1.6;padding:5px 0">'+(f.t.toLowerCase()==='center'?'On LiveATC page: pick the ZSE sector with the <strong>MOST listeners</strong> — that is the most active feed':'On LiveATC page: click the green <strong>LISTEN</strong> button (in browser, HTML5)')+'</div>'+      '</div>';
-  }
+'<div style="font-size:9px;color:var(--muted);margin-top:5px;line-height:1.6;padding:5px 0">'+(f.t.toLowerCase()==='center'?'On LiveATC page: pick the ZSE sector with the MOST listeners - that is the most active feed':f.t.toLowerCase()==='tower'?'On LiveATC page: click LISTEN under KPDX Tower (Both)':f.t.toLowerCase()==='ground'?'On LiveATC page: click LISTEN under KPDX Ground':f.t.toLowerCase()==='approach'?'On LiveATC page: click LISTEN under KPDX App/Dep (North) or ZSE Seattle Center (PDX Area)':f.t.toLowerCase()==='departure'?'On LiveATC page: click LISTEN under ZSE Seattle Center (PDX Area)':f.t.toLowerCase()==='atis'?'On LiveATC page: click LISTEN under KPDX ATIS':f.t.toLowerCase()==='clearance'?'On LiveATC page: click LISTEN under KPDX Del/Gnd':'On LiveATC page: click the green LISTEN button')+'</div>'+      '</div>';  }
   document.getElementById('atcwrap').innerHTML=html;
   showtab('atc');
 }
