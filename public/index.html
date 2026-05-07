@@ -221,9 +221,9 @@ function getLabel(apt,type,alt){
   if(t==='center'){
     var z=ARTCC[apt.icao]||'ZSE';
     var band=alt>=24000?'High Alt':'Low Alt';
-    return z+' En Route Center - '+band;
+    return z+(alt>=24000?' - Look for HIGH or Sector 46':' - Look for LOW or Sector 05');
   }
-  return apt.name+' '+type;
+  return apt.name+' '+type+' - Click any active feed';
 }
 
 function renderATC(phase,apt,alt,switched){
